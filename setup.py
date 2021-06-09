@@ -1,5 +1,6 @@
 from distutils.core import setup
-#from setuptools import setup, find_packages
+
+# from setuptools import setup, find_packages
 
 # read the contents of your README file
 from os import path
@@ -10,9 +11,14 @@ from os import path
 
 setup(
     name="cloudapi_digitalocean",
-    package_dir="src"
-    packages=["common","digitaloceanapi","digitaloceanobjects"],
-    version="0.0.4",
+    # package_dir={"": "src"},
+    packages=[
+        "cloudapi_digitalocean",
+        "cloudapi_digitalocean.common",
+        "cloudapi_digitalocean.digitaloceanapi",
+        "cloudapi_digitalocean.digitaloceanobjects",
+    ],
+    version="0.0.5",
     license="MIT",
     description="cloudapi_digitalocean, represents all digital ocean services as objects, hiding all those horrible api calls.",
     # long_description=long_description,
@@ -20,7 +26,7 @@ setup(
     author="zoran ilievski",
     author_email="pythonic@clientuser.net",
     url="https://github.com/zorani/cloudapi_digitalocean",
-    download_url="https://github.com/zorani/cloudapi_digitalocean/archive/refs/tags/v0.0.4.tar.gz",
+    download_url="https://github.com/zorani/cloudapi_digitalocean/archive/refs/tags/v0.0.5.tar.gz",
     keywords=["digitalocean", "api"],
     install_requires=["cloudapi"],
     classifiers=[
