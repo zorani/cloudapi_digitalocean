@@ -1,6 +1,4 @@
-from cloudapi_digitalocean.digitaloceanapi.digitaloceanapiconnection import (
-    DigitalOceanAPIConnection,
-)
+from .digitaloceanapiconnection import DigitalOceanAPIConnection
 import os
 import time
 import queue
