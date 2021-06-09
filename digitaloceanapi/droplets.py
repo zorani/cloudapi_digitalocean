@@ -143,6 +143,83 @@ class Droplets(DigitalOceanAPIConnection):
         """
         return self.get_request(f"{self.endpoint}/{id}", headers=self.headers)
 
+    def retrieve_droplet_action(self, droplet_id, action_id):
+        """
+
+        Args:
+            droplet_id ([type]): [description]
+            action_id ([type]): [description]
+        """
+
+        return self.get_request(
+            f"{self.endpoint}/{droplet_id}/actions/{action_id}", headers=self.headers
+        )
+
+    def reboot_droplet(self, id):
+        """
+
+        Args:
+            id ([type]): [description]
+        """
+        data_dict = {}
+        data_dict["type"] = "reboot"
+        data = json.dumps(data_dict)
+        return self.post_request(
+            f"{self.endpoint}/{id}/actions", headers=self.headers, data=data
+        )
+
+    def shutdown_droplet(self, id):
+        """
+
+        Args:
+            id ([type]): [description]
+        """
+        data_dict = {}
+        data_dict["type"] = "shutdown"
+        data = json.dumps(data_dict)
+        return self.post_request(
+            f"{self.endpoint}/{id}/actions", headers=self.headers, data=data
+        )
+
+    def poweron_droplet(self, id):
+        """
+
+        Args:
+            id ([type]): [description]
+        """
+        data_dict = {}
+        data_dict["type"] = "power_on"
+        data = json.dumps(data_dict)
+        return self.post_request(
+            f"{self.endpoint}/{id}/actions", headers=self.headers, data=data
+        )
+
+    def poweroff_droplet(self, id):
+        """
+
+        Args:
+            id ([type]): [description]
+        """
+        data_dict = {}
+        data_dict["type"] = "power_off"
+        data = json.dumps(data_dict)
+        return self.post_request(
+            f"{self.endpoint}/{id}/actions", headers=self.headers, data=data
+        )
+
+    def powercycle_droplet(self, id):
+        """
+
+        Args:
+            id ([type]): [description]
+        """
+        data_dict = {}
+        data_dict["type"] = "power_cycle"
+        data = json.dumps(data_dict)
+        return self.post_request(
+            f"{self.endpoint}/{id}/actions", headers=self.headers, data=data
+        )
+
 
 if __name__ == "__main__":
     digitalocean_droplets = Droplets()
