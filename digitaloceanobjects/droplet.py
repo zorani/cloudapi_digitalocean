@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from cloudapi_digitalocean.digitaloceanapi.droplets import Droplets
-from cloudapi_digitalocean.common.cloudapiexceptions import *
+from ..digitaloceanapi.droplets import Droplets
+from ..common.cloudapiexceptions import *
 import json
 import threading
 import time
