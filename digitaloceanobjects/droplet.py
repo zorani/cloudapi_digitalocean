@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from cloudapi_digitalocean.digitaloceanapi.droplets import Droplets
-from cloudapi_digitalocean.common.cloudapi_exceptions import *
+from cloudapi_digitalocean.common.cloudapiexceptions import *
 import json
 import threading
 import time
@@ -52,7 +52,7 @@ class DropletManager:
             [Droplet]:A droplet object containing attributes for a droplet with object id.
         """
         if not self.does_droplet_id_exist(id):
-            raise DropletNotFound(f"Droplet with id:{id} does not exists")
+            raise ErrorDropletNotFound(f"Droplet with id:{id} does not exists")
         newdroplet = Droplet(status="retrieve")
         response = self.dropletapi.retrieve_droplet_by_id(id)
         if response:
@@ -60,6 +60,14 @@ class DropletManager:
             droplet_data = dict(content["droplet"])
             newdroplet.attributes = DropletAttributes(**droplet_data)
         return newdroplet
+
+    def retrieve_droplets_by_name(self, name):
+        return_droplets = []
+        droplets = self.retrieve_all_droplets()
+        for droplet in droplets:
+            if droplet.attributes.name == name:
+                return_droplets.append(droplet)
+        return return_droplets
 
     def retrieve_all_droplets(self):
         """
@@ -201,10 +209,24 @@ class DropletArguments:
     tags: list = field(default_factory=list)
 
 
+@dataclass
+class DropletLastAction:
+    id: int = None
+    status: str = None
+    type: str = None
+    started_at: str = None
+    completed_at: str = None
+    resource_id: int = None
+    resource_type: str = None
+    region: object = None
+    region_slug: str = None
+
+
 class Droplet:
     def __init__(self, status=None):
         self.arguments = DropletArguments()
         self.attributes = DropletAttributes()
+        self.lastaction = DropletLastAction()
         self.attributes.status = status
         self.dropletapi = Droplets()
         self.update_on_active_status()
@@ -239,6 +261,83 @@ class Droplet:
         thread = threading.Thread(target=update_status, args=())
         thread.start()
 
+    def update_droplet_action(self):
+        """
+        Updates the Droplet lastaction data class with the latest droplet action information at digital ocean.
+        """
+        response = self.dropletapi.retrieve_droplet_action(
+            self.attributes.id, self.lastaction.id
+        )
+        if response:
+            content = json.loads(response.content.decode("utf-8"))
+            action_data = dict(content["action"])
+            self.lastaction = DropletLastAction(**action_data)
+
+    def update_on_active_action(self):
+        """
+        A freshly created droplet will need time to completely boot up and be active.
+        Information like IP addresses are not available untill the droplet is active.
+        Here we start a background thread that waits for the droplet to become active and then update the droplet attributes.
+        """
+
+        def update_action():
+            while (self.lastaction.status == None) or (
+                self.lastaction.status == "in-progress"
+            ):
+                if not self.lastaction.status in ["completed", "errored"]:
+                    time.sleep(10)
+                    self.update_droplet_action()
+                else:
+                    break
+
+        thread = threading.Thread(target=update_action, args=())
+        thread.start()
+
+    def reboot(self):
+        droplet_id = self.attributes.id
+        response = self.dropletapi.reboot_droplet(droplet_id)
+        if response:
+            content = json.loads(response.content.decode("utf-8"))
+            action_data = dict(content["action"])
+            self.lastaction = DropletLastAction(**action_data)
+            self.update_on_active_action()
+
+    def powercycle(self):
+        droplet_id = self.attributes.id
+        response = self.dropletapi.powercycle_droplet(droplet_id)
+        if response:
+            content = json.loads(response.content.decode("utf-8"))
+            action_data = dict(content["action"])
+            self.lastaction = DropletLastAction(**action_data)
+            self.update_on_active_action()
+
+    def shutdown(self):
+        droplet_id = self.attributes.id
+        response = self.dropletapi.shutdown_droplet(droplet_id)
+        if response:
+            content = json.loads(response.content.decode("utf-8"))
+            action_data = dict(content["action"])
+            self.lastaction = DropletLastAction(**action_data)
+            self.update_on_active_action()
+
+    def poweroff(self):
+        droplet_id = self.attributes.id
+        response = self.dropletapi.poweroff_droplet(droplet_id)
+        if response:
+            content = json.loads(response.content.decode("utf-8"))
+            action_data = dict(content["action"])
+            self.lastaction = DropletLastAction(**action_data)
+            self.update_on_active_action()
+
+    def poweron(self):
+        droplet_id = self.attributes.id
+        response = self.dropletapi.poweron_droplet(droplet_id)
+        if response:
+            content = json.loads(response.content.decode("utf-8"))
+            action_data = dict(content["action"])
+            self.lastaction = DropletLastAction(**action_data)
+            self.update_on_active_action()
+
 
 if __name__ == "__main__":
     dmanager = DropletManager()
@@ -259,7 +358,7 @@ if __name__ == "__main__":
 
     # while not a_droplet.attributes.status == "active":
     #    time.sleep(5)
-    #    print("waiting")
+    #   print("waiting")
 
     # print("-----arguments-----")
     # print(a_droplet.arguments)
@@ -279,4 +378,15 @@ if __name__ == "__main__":
 
     # print(dmanager.does_droplet_id_exist(249699371))
 
-    dmanager.delete_droplets_by_tag("banabas")
+    # dmanager.delete_droplets_by_tag("banabas")
+    droplets = dmanager.retrieve_droplets_by_name("example.com")
+    for droplet in droplets:
+        print(droplet.attributes.name)
+        droplet.powercycle()
+        while (droplet.lastaction.status == None) or (
+            droplet.lastaction.status == "in-progress"
+        ):
+            time.sleep(5)
+            print("waiting for action...")
+        print(droplet.lastaction)
+    print("finished")
