@@ -1,4 +1,5 @@
-from distutils.core import setup
+# from distutils.core import setup
+from setuptools import setup, find_packages
 
 # read the contents of your README file
 from os import path
@@ -9,8 +10,8 @@ from os import path
 
 setup(
     name="cloudapi_digitalocean",
-    packages=["cloudapi_digitalocean"],
-    version="0.0.1",
+    packages=find_packages(),
+    version="0.0.2",
     license="MIT",
     description="cloudapi_digitalocean, represents all digital ocean services as objects, hiding all those horrible api calls.",
     # long_description=long_description,
