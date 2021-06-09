@@ -11,7 +11,7 @@ from os import path
 setup(
     name="cloudapi_digitalocean",
     packages=find_packages(),
-    version="0.0.2",
+    version="0.0.3",
     license="MIT",
     description="cloudapi_digitalocean, represents all digital ocean services as objects, hiding all those horrible api calls.",
     # long_description=long_description,
@@ -19,7 +19,7 @@ setup(
     author="zoran ilievski",
     author_email="pythonic@clientuser.net",
     url="https://github.com/zorani/cloudapi_digitalocean",
-    download_url="https://github.com/zorani/cloudapi_digitalocean/archive/refs/tags/v0.0.2.tar.gz",
+    download_url="https://github.com/zorani/cloudapi_digitalocean/archive/refs/tags/v0.0.3.tar.gz",
     keywords=["digitalocean", "api"],
     install_requires=["cloudapi"],
     classifiers=[
