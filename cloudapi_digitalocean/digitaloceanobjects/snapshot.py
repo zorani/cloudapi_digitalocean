@@ -6,6 +6,7 @@ from ..digitaloceanapi.snapshots import Snapshots
 import json
 import threading
 import time
+import datetime
 
 
 class SnapshotManager:
@@ -111,7 +112,7 @@ class SnapshotManager:
 
     def delete_snapshot_id(self, id):
         if self.does_snapshot_id_exist(id):
-            self.delete_snapshot_id(id=id)
+            self.snapshotapi.delete_snapshot_id(id)
 
     def does_snapshot_id_exist(self, id):
         snapshots = self.retrieve_all_snapshots()

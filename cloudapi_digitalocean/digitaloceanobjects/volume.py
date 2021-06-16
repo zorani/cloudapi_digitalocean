@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from ..digitaloceanapi.volumes import Volumes
 from ..digitaloceanapi.snapshots import Snapshots
 from ..common.cloudapiexceptions import *
+from .action import *
+from .snapshot import *
 import json
 import threading
 import time
@@ -35,17 +37,17 @@ class VolumeArguments:
     tags: list = field(default_factory=list)
 
 
-@dataclass
-class VolumeLastActions:
-    id: int = None
-    status: str = None
-    type: str = None
-    started_at: str = None
-    completed_at: str = None
-    resource_id: int = None
-    resource_type: str = None
-    region: object = None
-    region_slug: str = None
+#@dataclass
+#class VolumeLastActions:
+#    id: int = None
+#    status: str = None
+#    type: str = None
+#    started_at: str = None
+#    completed_at: str = None
+#    resource_id: int = None
+#    resource_type: str = None
+#    region: object = None
+#    region_slug: str = None
 
 
 class VolumeManager:
@@ -84,14 +86,7 @@ class VolumeManager:
         return newvolume
 
     def retrieve_all_volumes(self):
-        """
-        Returns an array of Droplet objects, one for each droplet in digitalocean account.
 
-        Returns:
-            [type]: [description]
-        """
-
-        # Build list of droplets from api, but take in to account possible pagination.
         volume_list = []
         page, per_page = 1, 10
         response = self.volumeapi.list_all_volumes(page=page, per_page=per_page)
@@ -102,29 +97,22 @@ class VolumeManager:
                 page = page + 1
                 response = self.volumeapi.list_all_volumes(page=page, per_page=per_page)
                 content = json.loads(response.content.decode("utf-8"))
-                volume_list.extend(content["droplets"])
+                volume_list.extend(content["volumes"])
         except KeyError:
             pass
 
-        # Build and return that Droplet object array.
+        # Build and return that Volume object array.
         volume_objects = []
         for volume_item in volume_list:
             newvolume = Volume()
             newvolume.attributes = VolumeAttributes(**volume_item)
             newvolume.arguments = VolumeArguments()
-            newvolume.lastactions = VolumeLastActions()
+            #You need to actually retreive the last action for the volume object before creating an Action
+            #newvolume.lastaction = Action()
             volume_objects.append(newvolume)
         return volume_objects
 
     def retrieve_all_volumes_by_name(self, name):
-        """
-        Returns an array of Droplet objects, one for each droplet in digitalocean account.
-
-        Returns:
-            [type]: [description]
-        """
-
-        # Build list of droplets from api, but take in to account possible pagination.
         volume_list = []
         page, per_page = 1, 10
         response = self.volumeapi.list_all_volumes_by_name(
@@ -139,17 +127,18 @@ class VolumeManager:
                     name=name, page=page, per_page=per_page
                 )
                 content = json.loads(response.content.decode("utf-8"))
-                volume_list.extend(content["droplets"])
+                volume_list.extend(content["volumes"])
         except KeyError:
             pass
 
-        # Build and return that Droplet object array.
+        # Build and return that Volume object array.
         volume_objects = []
         for volume_item in volume_list:
             newvolume = Volume()
             newvolume.attributes = VolumeAttributes(**volume_item)
             newvolume.arguments = VolumeArguments()
-            newvolume.lastactions = VolumeLastActions()
+            #You need to actually retreive the last action for the volume object before creating an Action
+            #newvolume.lastaction = Action()
             volume_objects.append(newvolume)
         return volume_objects
 
@@ -161,7 +150,8 @@ class VolumeManager:
             volume_info = content["volume"]
             newvolume.attributes = VolumeAttributes(**volume_info)
             newvolume.arguments = VolumeArguments()
-            newvolume.lastactions = VolumeLastActions()
+            #You need to actually retreive the last action for the volume object before creating an Action
+            #newvolume.lastaction = Action()
             return newvolume
         else:
             raise ErrorVolumeNotFound(f"Volume {id} does not exist")
@@ -174,7 +164,8 @@ class VolumeManager:
             volume_info = content["volumes"][0]
             newvolume.attributes = VolumeAttributes(**volume_info)
             newvolume.arguments = VolumeArguments()
-            newvolume.lastactions = VolumeLastActions()
+            #You need to actually retreive the last action for the volume object before creating an Action
+            #newvolume.lastaction = Action()
             return newvolume
         else:
             raise ErrorVolumeNotFound(
@@ -212,7 +203,7 @@ class VolumeManager:
         return_volumes = []
         volumes = self.retrieve_all_volumes()
         for volume in volumes:
-            if set(list(tag)).issubset(volume.attributes.tags):
+            if set(list(tag)).issubset(set(volume.attributes.tags)):
                 return_volumes.append(volume)
         if len(return_volumes) > 0:
             return return_volumes
@@ -290,29 +281,88 @@ class VolumeManager:
                 return True
         return False
 
-    def create_snapshot_from_volume(self, volume: Volume, name, tags=[]):
-        id = volume.attributes.id
-        volumename = volume.attributes.name
+
+
+class Volume:
+    def __init__(self):
+        self.arguments = VolumeArguments()
+        self.attributes = VolumeAttributes()
+        self.lastaction:Action = None
+        self.volumeapi = Volumes()
+        self.volume_manager = VolumeManager()
+        self.action_manager = ActionManager()
+        self.deleted=False
+        
+    def update(self):
+        if not self.deleted==False:
+            raise ErrorVolumeNotFound(f"{self.attributes.id} was deleted")
+        """
+        Updates the Volume attributes data class with the latest volume information at digital ocean.
+        """
+        response = self.volumeapi.retrieve_volume_by_id(self.attributes.id)
+        if response:
+            content = json.loads(response.content.decode("utf-8"))
+            volume_data = dict(content["volume"])
+            self.attributes = VolumeAttributes(**volume_data)
+
+    #Actions are self updating, no need for these methods.
+    #def update_volume_action(self):
+    #    """
+    #    Updates the Droplet lastaction data class with the latest droplet action information at digital ocean.
+    #    """
+    #    response = self.volumeapi.retrieve_volume_action(
+    #        self.attributes.id, self.lastaction.id
+    #    )
+    #    if response:
+    #        content = json.loads(response.content.decode("utf-8"))
+    #        action_data = dict(content["action"])
+    #        self.lastaction = VolumeLastAction(**action_data)#
+    #
+    #def update_on_active_action(self):
+    #    """
+    #    A freshly created droplet will need time to completely boot up and be active.
+    #    Information like IP addresses are not available untill the droplet is active.
+    #    Here we start a background thread that waits for the droplet to become active and then update the droplet attributes.
+    #    """#
+    #
+    #    def update_action():
+    #        while (self.lastaction.status == None) or (
+    #            self.lastaction.status == "in-progress"
+    #        ):
+    #            if not self.lastaction.status in ["completed", "errored"]:
+    #                time.sleep(10)
+    #                self.update_volume_action()
+    #            else:
+    #                break
+
+    #    thread = threading.Thread(target=update_action, args=())
+    #    thread.start()
+
+
+    def create_snapshot(self, name, tags=[]):
+        id = self.attributes.id
+        if not self.volume_manager.does_volume_id_exist(id):
+            raise ErrorVolumeNotFound(f"Volume id:{id} not found.")
+        volumename = self.attributes.name
         arguments = {}
         arguments["name"] = name
         arguments["tags"] = tags
-        if self.does_volume_id_exist(id):
+        if self.volume_manager.does_volume_id_exist(id):
             newsnapshot = Snapshot()
             newsnapshot.arguments = SnapshotArguments(**arguments)
             response = self.volumeapi.create_snapshot_from_volume(id, name, tags)
-            content = json.loads(response.content.decode("utf-8"))
-            snapshot_info = content["snapshot"]
-            newsnapshot.attributes = SnapshotAttributes(**snapshot_info)
-            return newsnapshot
+            if response:
+                content = json.loads(response.content.decode("utf-8"))
+                snapshot_info = content["snapshot"]
+                newsnapshot.attributes = SnapshotAttributes(**snapshot_info)
+                return newsnapshot
 
         else:
             raise ErrorVolumeNotFound(
                 f"Cant create snapshot from non existent volume {id}:{volumename}"
             )
 
-    def list_snapshots_for_volume(self, volume: Volume):
-        self.does_volume_id_exist
-        id = volume.attributes.id
+    def retrieve_snapshots(self):
         # Buildlist of snapshots from api, but take in to account pagination
         snapshot_list = []
         page, per_page = 1, 10
@@ -342,9 +392,41 @@ class VolumeManager:
         return snapshot_objects
 
 
-class Volume:
-    def __init__(self):
-        self.arguments = VolumeArguments()
-        self.attributes = VolumeAttributes()
-        self.lastactions = VolumeLastActions()
-        self.volumeapi = Volumes()
+
+    
+
+    def detach_from_droplets(self):
+        #If volume is attached to any droplets, we detach it from them.
+        self.update()
+        droplet_ids=self.attributes.droplet_ids
+        if len(droplet_ids)>0:
+            for droplet_id in droplet_ids:
+                response = self.volumeapi.detach_volume_from_droplet(
+                self.attributes.id, droplet_id
+            )
+            if response:
+                content = json.loads(response.content.decode("utf-8"))
+                action_data = dict(content["action"])
+                newaction=Action(ActionAttributes(**action_data))
+                self.action_manager.wait_for_action_completion(newaction)
+                self.lastaction=newaction
+
+        
+
+    def resize(self,size_gigabytes):
+        #size from 1GB to max 16,384GB
+        if(size_gigabytes>16384):
+            raise ErrorVolumeResizeValueTooLarge("Maximum volume resize value of 16384 GB has been requested.")
+        #can only resize upwards
+        current_size=self.attributes.size_gigabytes
+        target_size=size_gigabytes
+        if(target_size<=current_size):
+            raise ErrorVolumeResizeDirection("You tried to shrink a volume, this isn't allowed. You can only increase a volumes size")
+
+        response=self.volumeapi.resize_volume(self.attributes.id,size_gigabytes,self.attributes.region['slug'])
+        if response:
+            content = json.loads(response.content.decode("utf-8"))
+            action_data = dict(content["action"])
+            newaction=Action(ActionAttributes(**action_data))
+            self.action_manager.wait_for_action_completion(newaction)
+            self.lastaction=newaction
