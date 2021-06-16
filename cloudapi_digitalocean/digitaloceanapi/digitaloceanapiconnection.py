@@ -8,9 +8,12 @@ class DigitalOceanAPIConnection(BaseRESTAPI):
             self,
             baseurl="https://api.digitalocean.com",
             callrateperhour=5000,
-            geometric_delay_multiplier=2,
-            maximum_geometric_delay_multiplications=6,
-            maximum_failed_attempts=3,
+            # geometric_delay_multiplier=2,
+            # maximum_geometric_delay_multiplications=6,
+            # maximum_failed_attempts=3,
+            geometric_delay_multiplier=1,
+            maximum_geometric_delay_multiplications=1,
+            maximum_failed_attempts=1,
         )
         if "DIGITALOCEAN_ACCESS_TOKEN" in os.environ:
             # print("Token found...")

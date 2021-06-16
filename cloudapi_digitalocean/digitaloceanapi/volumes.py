@@ -121,3 +121,44 @@ class Volumes(DigitalOceanAPIConnection):
         return self.get_request(
             f"{self.endpoint}/{id}/snapshots", headers=self.headers, params=params
         )
+
+    def attach_volume_to_droplet(self, volume_id, droplet_id, region, tags=[]):
+        data_dict = {}
+        data_dict["type"] = "attach"
+        data_dict["droplet_id"] = droplet_id
+        data_dict["region"] = str(region)
+        data_dict["tags"] = tags
+        data = json.dumps(data_dict)
+        return self.post_request(
+            f"{self.endpoint}/{volume_id}/actions", headers=self.headers, data=data
+        )
+
+    def detach_volume_from_droplet(self, volume_id, droplet_id, region=None):
+        data_dict = {}
+        data_dict["type"] = "detach"
+        data_dict["droplet_id"] = droplet_id
+        if not region == None:
+            data_dict["region"] = region
+        data = json.dumps(data_dict)
+        return self.post_request(
+            f"{self.endpoint}/{volume_id}/actions", headers=self.headers, data=data
+        )
+
+    def retrieve_volume_action(self, volume_id, action_id):
+
+        return self.get_request(
+            f"{self.endpoint}/{volume_id}/actions/{action_id}", headers=self.headers
+        )
+
+    def resize_volume(self, volume_id, size, region=None):
+        # size from 1GB to max 16,384GB
+        data_dict = []
+        data_dict["type"] = "resize"
+        data_dict["size_gigabytes"] = size
+        if not region == None:
+            data_dict["region"] = region
+        data = json.dumps(data_dict)
+
+        return self.post_request(
+            f"{self.endpoint}/{volume_id}/actions", headers=self.headers, data=data
+        )

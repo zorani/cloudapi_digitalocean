@@ -218,6 +218,108 @@ class Droplets(DigitalOceanAPIConnection):
             f"{self.endpoint}/{id}/actions", headers=self.headers, data=data
         )
 
+    def rebuild_droplet(self, id, image):
+        """
+        Rebuld action functions just like a new create.
+
+        Args:
+            id ([type]): Droplet ID
+            image ([type]): Image slug or ID.
+
+        Returns:
+            [type]: [description]
+        """
+        data_dict = {}
+        data_dict["type"] = "rebuild"
+        data_dict["image"] = image
+        data = json.dumps(data_dict)
+        return self.post_request(
+            f"{self.endpoint}/{id}/actions", headers=self.headers, data=data
+        )
+
+    def rename_droplet(self, id, name):
+        print("rename api called")
+        """
+        Rebuld action functions just like a new create.
+
+        Args:
+            id ([type]): Droplet ID
+            name ([type]): New droplet name
+
+        Returns:
+            [type]: [description]
+        """
+        data_dict = {}
+        data_dict["type"] = "rename"
+        data_dict["name"] = name
+        data = json.dumps(data_dict)
+        endpoint = f"{self.endpoint}/{id}/actions"
+        print(endpoint)
+        print(data)
+        return self.post_request(endpoint, headers=self.headers, data=data)
+        print("api finished")
+
+    def create_snapshot_from_droplet(self, id, name):
+        data_dict = {}
+        data_dict["type"] = "snapshot"
+        data_dict["name"] = name
+        # api doesnt let you have tags for droplets at this point
+        # data_dict["tags"] = tags
+        data = json.dumps(data_dict)
+        return self.post_request(
+            f"{self.endpoint}/{id}/actions", headers=self.headers, data=data
+        )
+
+    def list_snapshots_for_droplet(self, id, page=0, per_page=0):
+        arguments = locals()
+        del arguments["self"]
+        del arguments["id"]
+        # params must be set from a dictionary not a json dump
+        params = arguments
+        return self.get_request(
+            f"{self.endpoint}/{id}/snapshots", headers=self.headers, params=params
+        )
+
+    def restore_droplet(self, droplet_id, image_id):
+        data_dict = {}
+        data_dict["type"] = "restore"
+        data_dict["image"] = image_id
+        data = json.dumps(data_dict)
+
+        return self.post_request(
+            f"{self.endpoint}/{droplet_id}/actions", headers=self.headers, data=data
+        )
+
+    def resize_droplet(self, droplet_id, size, disk_resize=False):
+        ##WARNING... if you try to resie to a lower size disk  api will hang.
+        ##need to implement checking if resize is allowed.
+        """[summary]
+
+        Args:
+            droplet_id ([type]): [description]
+            size ([type]): [description]
+            disk_resize (bool, optional): When set to True you resize not only the memory, but also you upgrade to the disk size of the slug, meaning you cant resize back down. Defaults to False.
+
+        Returns:
+            [type]: [description]
+        """
+        data_dict = {}
+        data_dict["type"] = "resize"
+        if disk_resize:
+            data_dict["disk"] = true
+        data_dict["size"] = size
+        data = json.dumps(data_dict)
+
+        return self.post_request(
+            f"{self.endpoint}/{droplet_id}/actions", headers=self.headers, data=data
+        )
+
+    def list_droplet_resources(self, droplet_id):
+        return self.get_request(
+            f"{self.endpoint}/{droplet_id}/destroy_with_associated_resources",
+            headers=self.headers,
+        )
+
 
 if __name__ == "__main__":
     digitalocean_droplets = Droplets()
