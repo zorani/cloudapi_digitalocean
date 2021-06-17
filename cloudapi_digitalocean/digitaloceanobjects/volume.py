@@ -74,7 +74,7 @@ class VolumeManager:
         snapshot_id: str = None,
         filesystem_type: str = None,
         filesystem_label: str = None,
-        tags: [] = None,
+        tags: list= None,
     ):
 
         arguments = locals()

@@ -667,7 +667,7 @@ class Droplet:
         # Must check if the target_volume is in the same region
         if not self.attributes.region == target_volume.attributes.region:
             raise ErrorNotSameRegion(
-                f"Volume {target_volume_id} not is same regions as Droplet {self.attributes.id}"
+                f"Volume {target_volume.attributes.id} not is same regions as Droplet {self.attributes.id}"
             )
 
         # Only 7 volumes allowed to be attached per droplet.
