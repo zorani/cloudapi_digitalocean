@@ -6,6 +6,7 @@ from ..digitaloceanapi.snapshots import Snapshots
 from ..common.cloudapiexceptions import *
 from .action import *
 from .snapshot import *
+from .account import *
 import json
 import threading
 import time
@@ -53,6 +54,16 @@ class VolumeArguments:
 class VolumeManager:
     def __init__(self):
         self.volumeapi = Volumes()
+        self.account_manager = AccountManager()
+
+    def check_limit(self):
+        volume_limit = self.account_manager.volume_limit()
+        if not len(self.retrieve_all_volumes()) < volume_limit:
+            raise ErrorAccountVolumeLimitReached
+            (
+                f"You have reached your volume limit of {volume_limit}"
+            )
+
 
     def create_new_volume(
         self,
@@ -73,6 +84,8 @@ class VolumeManager:
             raise ErrorVolumeAlreadyExists(
                 f"Volume name:{name}, region:{region} Already Exists"
             )
+
+        self.check_limit()
 
         newvolume = Volume()
         newvolume.arguments = VolumeArguments(**arguments)

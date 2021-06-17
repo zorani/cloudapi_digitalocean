@@ -7,6 +7,7 @@ from .action import *
 from .snapshot import *
 from .size import *
 from .volume import *
+from .account import *
 from ..common.cloudapiexceptions import *
 import json
 import threading
@@ -38,6 +39,15 @@ class DropletManager:
         self.dropletapi = Droplets()
         self.smanager = SnapshotManager()
         self.amanager = ActionManager()
+        self.account_manager=AccountManager()
+
+    def check_limit(self):
+        droplet_limit = self.account_manager.droplet_limit()
+        if not len(self.retrieve_all_droplets()) < droplet_limit:
+            raise ErrorAccountDropletLimitReached
+            (
+                f"You have reached your droplet limit of {droplet_limit}"
+            )
 
     def is_valid_droplet_name(self,droplet_name):
         #Double check hostname for valid chars
@@ -67,6 +77,7 @@ class DropletManager:
 
 
         self.is_valid_droplet_name(arguments['name'])
+        self.check_limit()
 
 
 
