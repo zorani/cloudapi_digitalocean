@@ -66,3 +66,38 @@ class ErrorDropletAttachedVolumeCountAlreadAtLimit(Exception):
 class ErrorNotSameRegion(Exception):
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
+
+
+class ErrorDropletAlreadyHasFloatingIP(Exception):
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
+
+
+class ErrorRegionDoesNotExist(Exception):
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
+
+
+class ErrorAccountFloatingIPLimitReached(Exception):
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
+
+
+class ErrorAccountDropletLimitReached(Exception):
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
+
+
+class ErrorAccountVolumeLimitReached(Exception):
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
+
+
+class ErrorFloatingIPDoesNotExists(Exception):
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
+
+
+class ErrorSSHkeyDoesNotExists(Exception):
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
