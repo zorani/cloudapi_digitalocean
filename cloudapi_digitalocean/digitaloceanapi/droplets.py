@@ -306,7 +306,7 @@ class Droplets(DigitalOceanAPIConnection):
         data_dict = {}
         data_dict["type"] = "resize"
         if disk_resize:
-            data_dict["disk"] = true
+            data_dict["disk"] = True
         data_dict["size"] = size
         data = json.dumps(data_dict)
 
