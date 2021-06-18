@@ -13,3 +13,5 @@ from .digitaloceanobjects.floatingip import FloatingIP as FloatingIP
 from .digitaloceanobjects.floatingip import FloatingIPManager as FloatingIPManager
 from .digitaloceanobjects.account import Account as Account
 from .digitaloceanobjects.account import AccountManager as AccountManager
+from .digitaloceanobjects.sshkey import SSHkey as SSHkey
+from .digitaloceanobjects.sshkey import SSHkeyManager as SSHkeyManager
