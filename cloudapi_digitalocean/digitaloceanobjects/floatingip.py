@@ -36,7 +36,7 @@ class FloatingIPManager:
                 f"You have reached your floating ip limit of {floating_ip_limit}"
             )
 
-    def retreive_all_floating_ips(self):
+    def retrieve_all_floating_ips(self):
         floating_ip_list = []
         page, per_page = 1, 10
         response = self.floatingipapi.list_all_floating_ips(

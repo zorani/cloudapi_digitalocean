@@ -358,6 +358,7 @@ class Droplet:
         self.size_manager = SizeManager()
         self.volume_manager = VolumeManager()
         self.snapshot_manager = SnapshotManager()
+        self.droplet_manager = DropletManager()
         self.update_on_active_status()
         self.deleted=False
 
@@ -512,7 +513,7 @@ class Droplet:
     def rename(self, name):
         if not self.deleted==False:
             raise ErrorDropletNotFound(f"{self.attributes.id} was deleted")
-        self.is_valid_droplet_name(name)
+        self.droplet_manager.is_valid_droplet_name(name)
         droplet_id = self.attributes.id
         response = self.dropletapi.rename_droplet(droplet_id, name)
         if response:
